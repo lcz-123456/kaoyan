@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>恭喜学姐考研上岸！</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #fdf2f8;
+            font-family: "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        /* 祝福卡片样式 */
+        .card {
+            background-color: #fff;
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 192, 203, 0.5);
+            text-align: center;
+            z-index: 10;
+            border: 2px solid #f9c5d1;
+        }
+        .card h1 {
+            color: #e53e3e;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #4a5568;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .card .highlight {
+            color: #ec4899;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        /* 画布层级：流星最底层，烟花中间，樱花上层，卡片最顶层 */
+        #meteorCanvas, #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #meteorCanvas {
+            z-index: 0;
+        }
+        #fireworksCanvas {
+            z-index: 1;
+        }
+        /* 樱花样式：5片花瓣+浅粉渐变，还原樱花形态 */
+        .sakura {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 5;
+            opacity: 0.85;
+            transform-origin: center center;
+        }
+        /* 5片樱花花瓣定位（模拟真实樱花形态） */
+        .sakura-petal {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            border-radius: 50% 0 50% 50%;
+            background: linear-gradient(45deg, #fff5f7, #ffc2e2);
+        }
+        .sakura-petal:nth-child(1) { top: 0; left: 6px; transform: rotate(0deg); }
+        .sakura-petal:nth-child(2) { top: 4px; right: 0; transform: rotate(72deg); }
+        .sakura-petal:nth-child(3) { bottom: 2px; right: 2px; transform: rotate(144deg); }
+        .sakura-petal:nth-child(4) { bottom: 2px; left: 2px; transform: rotate(216deg); }
+        .sakura-petal:nth-child(5) { top: 4px; left: 0; transform: rotate(288deg); }
+        /* 樱花花心 */
+        .sakura-center {
+            position: absolute;
+            top: 7px;
+            left: 7px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ffb3c1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 流星画布 -->
+    <canvas id="meteorCanvas"></canvas>
+    <!-- 烟花画布 -->
+    <canvas id="fireworksCanvas"></canvas>
+    <!-- 祝福卡片 -->
+    <div class="card">
+        <h1>🎉🎉 祝学姐考研顺利 成功上岸! ✨ ✨</h1>
+    </div>
+
+    <script>
+        // 1. 樱花下落特效（加快频率+优化形态）
+        function createSakura() {
+            const body = document.body;
+            // 频率加快：从600ms改为200ms生成一朵樱花
+            setInterval(() => {
+                // 创建樱花容器
+                const sakura = document.createElement("div");
+                sakura.className = "sakura";
+                
+                // 生成5片樱花花瓣（樱花经典5瓣形态）
+                for (let i = 0; i < 5; i++) {
+                    const petal = document.createElement("div");
+                    petal.className = "sakura-petal";
+                    sakura.appendChild(petal);
+                }
+                
+                // 添加花心
+                const center = document.createElement("div");
+                center.className = "sakura-center";
+                sakura.appendChild(center);
+
+                // 随机水平位置
+                const left = Math.random() * 100 + "vw";
+                sakura.style.left = left;
+                sakura.style.top = "-30px";
+                
+                // 随机大小（0.7-1.2倍）
+                const sizeScale = Math.random() * 0.5 + 0.7;
+                sakura.style.transform = `scale(${sizeScale}) rotate(0deg)`;
+                sakura.style.opacity = Math.random() * 0.3 + 0.7;
+                
+                // 随机下落速度（3-7秒）、旋转速度（5-10秒）
+                const fallDuration = Math.random() * 4 + 3 + "s";
+                const rotateDuration = Math.random() * 5 + 5 + "s";
+                const moveX = Math.random() * 80 - 40 + "px";
+                
+                // 组合动画：下落+旋转+左右飘动
+                sakura.style.animation = `
+                    fall ${fallDuration} ease-in forwards,
+                    rotate ${rotateDuration} linear infinite
+                `;
+                
+                body.appendChild(sakura);
+
+                // 移除樱花（时长匹配最长下落时间）
+                setTimeout(() => {
+                    sakura.remove();
+                }, 7000);
+            }, 200); // 核心：频率加快，200ms生成一朵
+        }
+
+        // 樱花动画样式
+        const style = document.createElement("style");
+        style.textContent = `
+            @keyframes fall {
+                0% {
+                    transform: scale(1) rotate(0deg) translateY(0) translateX(0);
+                    opacity: 0.85;
+                }
+                100% {
+                    transform: scale(1) rotate(0deg) translateY(100vh) translateX(40px);
+                    opacity: 0;
+                }
+            }
+            @keyframes rotate {
+                0% {
+                    transform: scale(1) rotate(0deg);
+                }
+                100% {
+                    transform: scale(1) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 2. 流星特效
+        class Meteor {
+            constructor() {
+                this.canvas = document.getElementById("meteorCanvas");
+                this.ctx = this.canvas.getContext("2d");
+                this.resizeCanvas();
+                window.addEventListener("resize", () => this.resizeCanvas());
+                this.meteors = [];
+                this.animate();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            createMeteor() {
+                // 随机流星起始位置（屏幕外上方）
+                const x = Math.random() * this.canvas.width * 1.2 - this.canvas.width * 0.1;
+                const y = Math.random() * this.canvas.height * 0.3 - 50;
+                // 随机流星长度、速度、角度
+                const length = Math.random() * 80 + 40;
+                const speed = Math.random() * 8 + 5;
+                const angle = Math.PI / 6 + Math.random() * Math.PI / 12; // 固定倾斜角度
+                // 粉色系流星颜色
+                const colors = ["#fff0f5", "#ffc2e2", "#ffb3c1"];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                this.meteors.push({
+                    x,
+                    y,
+                    length,
+                    speed,
+                    angle,
+                    color,
+                    alpha: 1,
+                    decay: 0.01
+                });
+            }
+
+            updateMeteors() {
+                for (let i = this.meteors.length - 1; i >= 0; i--) {
+                    const m = this.meteors[i];
+                    // 流星移动
+                    m.x += Math.cos(m.angle) * m.speed;
+                    m.y += Math.sin(m.angle) * m.speed;
+                    // 透明度衰减
+                    m.alpha -= m.decay;
+                    // 超出屏幕或透明度为0则移除
+                    if (m.y > this.canvas.height || m.alpha <= 0) {
+                        this.meteors.splice(i, 1);
+                    }
+                }
+            }
+
+            drawMeteors() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (const m of this.meteors) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(m.x, m.y);
+                    // 流星尾部
+                    this.ctx.lineTo(
+                        m.x - Math.cos(m.angle) * m.length,
+                        m.y - Math.sin(m.angle) * m.length
+                    );
+                    this.ctx.strokeStyle = m.color;
+                    this.ctx.globalAlpha = m.alpha;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                    this.ctx.globalAlpha = 1;
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                // 随机生成流星（频率低于烟花）
+                if (Math.random() < 0.01) {
+                    this.createMeteor();
+                }
+                this.updateMeteors();
+                this.drawMeteors();
+            }
+        }
+
+        // 3. 烟花特效（保留原粉色系）
+        class Firework {
+            constructor() {
+                this.canvas = document.getElementById("fireworksCanvas");
+                this.ctx = this.canvas.getContext("2d");
+                this.resizeCanvas();
+                window.addEventListener("resize", () => this.resizeCanvas());
+                this.fireworks = [];
+                this.animate();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            createFirework() {
+                const x = Math.random() * this.canvas.width;
+                const y = this.canvas.height;
+                const colors = ["#ff6b6b", "#ff8fa3", "#ffc2e2", "#ffb3c1", "#f9c5d1", "#fff0f5"];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const particles = [];
+                const particleCount = 100;
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 3 + 2;
+                    particles.push({
+                        x,
+                        y,
+                        angle,
+                        speed,
+                        gravity: 0.02,
+                        friction: 0.98,
+                        color,
+                        alpha: 1,
+                        decay: Math.random() * 0.01 + 0.005
+                    });
+                }
+                this.fireworks.push(particles);
+            }
+
+            updateFireworks() {
+                for (let i = this.fireworks.length - 1; i >= 0; i--) {
+                    const particles = this.fireworks[i];
+                    for (let j = particles.length - 1; j >= 0; j--) {
+                        const p = particles[j];
+                        p.speed *= p.friction;
+                        p.x += Math.cos(p.angle) * p.speed;
+                        p.y += Math.sin(p.angle) * p.speed + p.gravity;
+                        p.alpha -= p.decay;
+                        if (p.alpha <= 0) {
+                            particles.splice(j, 1);
+                        }
+                    }
+                    if (particles.length === 0) {
+                        this.fireworks.splice(i, 1);
+                    }
+                }
+            }
+
+            drawFireworks() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (const particles of this.fireworks) {
+                    for (const p of particles) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                        this.ctx.fillStyle = p.color;
+                        this.ctx.globalAlpha = p.alpha;
+                        this.ctx.fill();
+                        this.ctx.globalAlpha = 1;
+                    }
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                if (Math.random() < 0.05) {
+                    this.createFirework();
+                }
+                this.updateFireworks();
+                this.drawFireworks();
+            }
+        }
+
+        // 页面加载启动所有特效
+        window.onload = () => {
+            new Meteor();
+            new Firework();
+            createSakura();
+        };
+    </script>
+</body>
+</html>
